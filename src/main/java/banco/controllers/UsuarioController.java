@@ -1,77 +1,64 @@
 package banco.controllers;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import banco.dao.UsuarioDAO;
-import banco.dto.UsuarioDTO;
 import banco.models.Usuario;
+import banco.services.UsuariosService; // Solo se importa el Service
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 
 /**
- * Controller REST para manejar operaciones de Usuario
+ * Controller REST para manejar operaciones de Usuario.
+ * Habla exclusivamente con la capa de servicio.
  */
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioDAO usuarioDAO;
+    // 1. Inyección: Solo se inyecta el Service
+    private final UsuariosService usuariosService;
+
+    // Inyección por Constructor (limpio y recomendado)
+    public UsuarioController(UsuariosService usuariosService) {
+        this.usuariosService = usuariosService;
+    }
 
     /**
      * GET /api/usuarios - Obtener todos los usuarios
      */
     @GetMapping
-    public ResponseEntity<List<UsuarioDTO>> getAllUsuarios() {
-        try {
-            List<UsuarioDTO> usuarios = usuarioDAO.findAll()
-                    .stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(usuarios);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<List<Usuario>> getAllUsuarios() {
+        // Llama al servicio, que maneja las transacciones y el acceso al DAO
+        List<Usuario> usuarios = usuariosService.findAll();
+        return ResponseEntity.ok(usuarios);
     }
 
     /**
      * GET /api/usuarios/{id} - Obtener un usuario por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> getUsuarioById(@PathVariable Long id) {
-        try {
-            Optional<Usuario> usuarioOpt = usuarioDAO.findById(id);
-            return usuarioOpt
-                    .map(usuario -> ResponseEntity.ok(convertToDTO(usuario)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Usuario> getUsuarioById(@PathVariable Integer id) {
+        return usuariosService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
      * POST /api/usuarios - Crear un nuevo usuario
      */
     @PostMapping
-    public ResponseEntity<?> createUsuario(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
         try {
-            // Verificar duplicados
-            if (usuarioDAO.existsByDniRuc(usuarioDTO.getDni_ruc())) {
-                return ResponseEntity.badRequest().body("El DNI/RUC ya está registrado.");
-            }
-            if (usuarioDAO.existsByCorreo(usuarioDTO.getCorreo())) {
-                return ResponseEntity.badRequest().body("El correo ya está registrado.");
-            }
-
-            Usuario usuario = convertToEntity(usuarioDTO);
-            Usuario savedUsuario = usuarioDAO.save(usuario);
-            return ResponseEntity.ok(convertToDTO(savedUsuario));
+            // El servicio maneja la validación de duplicados (DNI/correo)
+            Usuario savedUsuario = usuariosService.save(usuario);
+            return new ResponseEntity<>(savedUsuario, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            // Excepción lanzada por el servicio al encontrar un duplicado
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
+            // Captura errores generales
             return ResponseEntity.internalServerError().body("Error al crear usuario.");
         }
     }
@@ -79,136 +66,79 @@ public class UsuarioController {
     /**
      * PUT /api/usuarios/{id} - Actualizar un usuario existente
      */
+    // Modificar aquí: de <Usuario> a <?> o <Object>
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody UsuarioDTO usuarioDTO) {
-        try {
-            Optional<Usuario> existingUsuarioOpt = usuarioDAO.findById(id);
-            if (existingUsuarioOpt.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
+    public ResponseEntity<?> updateUsuario(@PathVariable Integer id, @RequestBody Usuario usuario) {
 
-            Usuario usuario = convertToEntity(usuarioDTO);
-            usuario.setId_usuario(id);
-
-            Usuario updatedUsuario = usuarioDAO.update(usuario);
-            return ResponseEntity.ok(convertToDTO(updatedUsuario));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al actualizar usuario.");
+        if (usuario.getId_usuario() == null || !usuario.getId_usuario().equals(id)) {
+            // Devuelve ResponseEntity<String> (400 Bad Request)
+            return ResponseEntity.badRequest().body("El ID de la ruta no coincide con el ID del cuerpo.");
         }
+
+        // Si llegamos aquí, queremos devolver ResponseEntity<Usuario> (200 OK)
+        if (usuariosService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Usuario updatedUsuario = usuariosService.update(usuario);
+        return ResponseEntity.ok(updatedUsuario);
     }
 
     /**
      * DELETE /api/usuarios/{id} - Eliminar un usuario
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
-        try {
-            usuarioDAO.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al eliminar usuario.");
-        }
+    public ResponseEntity<Void> deleteUsuario(@PathVariable Integer id) {
+        usuariosService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
+
+    // --- MÉTODOS DE BÚSQUEDA Y LOGIN ---
 
     /**
      * GET /api/usuarios/dni/{dni} - Buscar usuario por DNI
      */
     @GetMapping("/dni/{dni}")
-    public ResponseEntity<UsuarioDTO> getUsuarioByDni(@PathVariable String dni) {
-        try {
-            Optional<Usuario> usuarioOpt = usuarioDAO.findByDniRuc(dni);
-            return usuarioOpt
-                    .map(usuario -> ResponseEntity.ok(convertToDTO(usuario)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Usuario> getUsuarioByDni(@PathVariable String dni) {
+        return usuariosService.findByDniRuc(dni)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
      * GET /api/usuarios/email/{email} - Buscar usuario por email
      */
     @GetMapping("/email/{email}")
-    public ResponseEntity<UsuarioDTO> getUsuarioByEmail(@PathVariable String email) {
-        try {
-            Optional<Usuario> usuarioOpt = usuarioDAO.findByCorreo(email);
-            return usuarioOpt
-                    .map(usuario -> ResponseEntity.ok(convertToDTO(usuario)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Usuario> getUsuarioByEmail(@PathVariable String email) {
+        return usuariosService.findByCorreo(email)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-
 
     /**
      * GET /api/usuarios/tipo/{tipo} - Obtener usuarios por tipo
      */
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<UsuarioDTO>> getUsuariosByTipo(@PathVariable String tipo) {
-        try {
-            List<UsuarioDTO> usuarios = usuarioDAO.findByRol(tipo.toUpperCase())
-                    .stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(usuarios);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<List<Usuario>> getUsuariosByTipo(@PathVariable String tipo) {
+        return ResponseEntity.ok(usuariosService.findByRol(tipo.toUpperCase()));
     }
 
     /**
      * POST /api/usuarios/login - Iniciar sesión
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UsuarioDTO loginRequest) {
-        try {
-            Optional<Usuario> usuarioOpt = usuarioDAO.findByCorreo(loginRequest.getCorreo());
-
-            if (usuarioOpt.isEmpty()) {
-                return ResponseEntity.status(401).body("Usuario no encontrado");
-            }
-
-            Usuario usuario = usuarioOpt.get();
-            if (!usuario.getContrasena().equals(loginRequest.getContrasena())) {
-                return ResponseEntity.status(401).body("Contraseña incorrecta");
-            }
-
-            return ResponseEntity.ok(convertToDTO(usuario));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno del servidor");
-        }
-    }
-
-    // 🔄 Conversión de modelo a DTO
-    private UsuarioDTO convertToDTO(Usuario usuario) {
-        return new UsuarioDTO(
-                usuario.getId_usuario(),
-                usuario.getNombre(),
-                usuario.getApellidos(),
-                usuario.getDni_ruc(),
-                usuario.getCorreo(),
-                usuario.getContrasena(),
-                usuario.getTelefono(),
-                usuario.getDireccion(),
-                usuario.getNombre_usuario(),
-                usuario.getRol_usuario()
+    public ResponseEntity<?> login(@RequestBody Usuario loginRequest) {
+        // Delega toda la lógica de validación de correo/contraseña al servicio
+        Optional<Usuario> usuarioOpt = usuariosService.login(
+                loginRequest.getCorreo(),
+                loginRequest.getContrasena()
         );
-    }
 
-    // 🔄 Conversión de DTO a modelo
-    private Usuario convertToEntity(UsuarioDTO dto) {
-        Usuario usuario = new Usuario();
-        usuario.setId_usuario(dto.getId());
-        usuario.setNombre(dto.getNombre());
-        usuario.setApellidos(dto.getApellidos());
-        usuario.setDni_ruc(dto.getDni_ruc());
-        usuario.setCorreo(dto.getCorreo());
-        usuario.setTelefono(dto.getTelefono());
-        usuario.setDireccion(dto.getDireccion());
-        usuario.setNombre_usuario(dto.getNombre_usuario());
-        usuario.setRol_usuario(dto.getRol_usuario());
-        return usuario;
+        if (usuarioOpt.isEmpty()) {
+            // Devuelve 401 si el login falla (correo no existe o contraseña incorrecta)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Correo o contraseña incorrectos.");
+        }
+
+        return ResponseEntity.ok(usuarioOpt.get());
     }
 }

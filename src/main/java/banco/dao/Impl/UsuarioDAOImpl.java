@@ -13,8 +13,11 @@ import java.util.Optional;
 @Repository
 public class UsuarioDAOImpl implements UsuarioDAO {
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    public UsuarioDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // ===== CRUD =====
 
@@ -25,7 +28,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
-    public Optional<Usuario> findById(Long id_usuario) {
+    public Optional<Usuario> findById(Integer id_usuario) {
         String sql = "SELECT * FROM t_usuario WHERE id_usuario = ?";
         try {
             Usuario usuario = jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Usuario.class), id_usuario);
@@ -73,7 +76,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
-    public void deleteById(Long id_usuario) {
+    public void deleteById(Integer id_usuario) {
         String sql = "DELETE FROM t_usuario WHERE id_usuario = ?";
         jdbcTemplate.update(sql, id_usuario);
     }

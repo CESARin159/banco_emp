@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class UsuarioDTO implements Serializable {
 
-    private Long id;
+    private Integer id;
     private String nombre;
     private String apellidos;
     private String dni_ruc;
@@ -21,11 +21,11 @@ public class UsuarioDTO implements Serializable {
     private Integer rol_usuario;
 
     // Constructor vacío (requerido por frameworks)
-    public UsuarioDTO(Long idUsuario, String nombre, String apellidos, String dniRuc, String correo, String contrasena,String telefono, String direccion, String nombreUsuario, String rolUsuario) {
+    public UsuarioDTO(Integer idUsuario, String nombre, String apellidos, String dniRuc, String correo, String contrasena,String telefono, String direccion, String nombreUsuario, String rolUsuario) {
     }
 
     // Constructor completo
-    public UsuarioDTO(Long id, String nombre, String apellidos, String dni_ruc, String correo,String contrasena,
+    public UsuarioDTO(Integer id, String nombre, String apellidos, String dni_ruc, String correo,String contrasena,
                       String telefono, String direccion, String nombre_usuario, Integer rol_usuario) {
         this.id = id;
         this.nombre = nombre;
@@ -39,11 +39,11 @@ public class UsuarioDTO implements Serializable {
     }
 
     // Getters y Setters
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

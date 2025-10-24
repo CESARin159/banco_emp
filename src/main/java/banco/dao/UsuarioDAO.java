@@ -8,10 +8,10 @@ public interface UsuarioDAO {
 
     // CRUD básico
     List<Usuario> findAll();
-    Optional<Usuario> findById(Long id_usuario);
+    Optional<Usuario> findById(Integer id_usuario);
     Usuario save(Usuario usuario);
     Usuario update(Usuario usuario);
-    void deleteById(Long id_usuario);
+    void deleteById(Integer id_usuario);
 
     // Búsquedas específicas
     Optional<Usuario> findByDniRuc(String dniRuc);

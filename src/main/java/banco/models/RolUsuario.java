@@ -8,27 +8,27 @@ import jakarta.persistence.*;
 public class RolUsuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_rol_usuario;
+    private Integer id;
 
-    private String nombre_rol;
+    private String rol;
     private String descripcion;
 
     // Getters y Setters
 
-    public Long getId_rol_usuario() {
-        return id_rol_usuario;
+    public Integer getId() {
+        return id;
     }
 
-    public void setId_rol_usuario(Long id_rol_usuario) {
-        this.id_rol_usuario = id_rol_usuario;
+    public void setId(Integer id_rol_usuario) {
+        this.id = id_rol_usuario;
     }
 
-    public String getNombre_rol() {
-        return nombre_rol;
+    public String getRol() {
+        return rol;
     }
 
-    public void setNombre_rol(String nombre_rol) {
-        this.nombre_rol = nombre_rol;
+    public void setRol(String nombre_rol) {
+        this.rol = nombre_rol;
     }
 
     public String getDescripcion() {

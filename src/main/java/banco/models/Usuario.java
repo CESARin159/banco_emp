@@ -1,5 +1,6 @@
 package banco.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 
@@ -10,7 +11,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario")
-    private Long id_usuario;
+    private Integer id_usuario;
 
     @Column(nullable = false, length = 100)
     private String nombre;
@@ -37,6 +38,7 @@ public class Usuario {
     private String nombre_usuario;
 
     @Column(nullable = false, length = 255)
+    @JsonIgnore
     private String contrasena;
 
     @Column(name = "rol_usuario", nullable = false, length = 50)
@@ -44,11 +46,11 @@ public class Usuario {
 
     // ===== Getters y Setters =====
 
-    public Long getId_usuario() {
+    public Integer getId_usuario() {
         return id_usuario;
     }
 
-    public void setId_usuario(Long id_usuario) {
+    public void setId_usuario(Integer id_usuario) {
         this.id_usuario = id_usuario;
     }
 

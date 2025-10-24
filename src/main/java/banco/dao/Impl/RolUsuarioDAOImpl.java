@@ -11,18 +11,18 @@ import java.util.Optional;
 
 @Repository
 public class RolUsuarioDAOImpl implements RolUsuarioDAO {
-    @Autowired
+
     private JdbcTemplate jdbcTemplate;
 
     @Override
     public List<RolUsuario> findAll() {
-        String sql = "SELECT * FROM t_rol_usuario";
+        String sql = "SELECT * FROM rol_usuario";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(RolUsuario.class));
     }
 
     @Override
-    public Optional<RolUsuario> findById(Long id) {
-        String sql = "SELECT * FROM t_rol_usuario WHERE id_rol_usuario = ?";
+    public Optional<RolUsuario> findById(Integer id) {
+        String sql = "SELECT * FROM rol_usuario WHERE id = ?";
         try {
             RolUsuario r = jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(RolUsuario.class), id);
             return Optional.ofNullable(r);
@@ -33,21 +33,21 @@ public class RolUsuarioDAOImpl implements RolUsuarioDAO {
 
     @Override
     public RolUsuario save(RolUsuario rol) {
-        String sql = "INSERT INTO t_rol_usuario (nombre_rol, descripcion) VALUES (?, ?)";
-        jdbcTemplate.update(sql, rol.getNombre_rol(), rol.getDescripcion());
+        String sql = "INSERT INTO rol_usuario (rol, descripcion) VALUES (?, ?)";
+        jdbcTemplate.update(sql, rol.getRol(), rol.getDescripcion());
         return rol;
     }
 
     @Override
     public RolUsuario update(RolUsuario rol) {
-        String sql = "UPDATE t_rol_usuario SET nombre_rol=?, descripcion=? WHERE id_rol_usuario=?";
-        jdbcTemplate.update(sql, rol.getNombre_rol(), rol.getDescripcion(), rol.getId_rol_usuario());
+        String sql = "UPDATE rol_usuario SET rol=?, descripcion=? WHERE id=?";
+        jdbcTemplate.update(sql, rol.getRol(), rol.getDescripcion(), rol.getId());
         return rol;
     }
 
     @Override
-    public void deleteById(Long id) {
-        String sql = "DELETE FROM t_rol_usuario WHERE id_rol_usuario = ?";
+    public void deleteById(Integer id) {
+        String sql = "DELETE FROM rol_usuario WHERE id = ?";
         jdbcTemplate.update(sql, id);
     }
 }
