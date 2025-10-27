@@ -38,7 +38,6 @@ public class Usuario {
     private String nombre_usuario;
 
     @Column(nullable = false, length = 255)
-    @JsonIgnore
     private String contrasena;
 
     @Column(name = "rol_usuario", nullable = false, length = 50)
