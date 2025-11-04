@@ -18,7 +18,7 @@ import java.util.Optional;
 public class UsuarioController {
 
     // 1. Inyección: Solo se inyecta el Service
-    private final UsuariosService usuariosService;
+        private final UsuariosService usuariosService;
 
     // Inyección por Constructor (limpio y recomendado)
     public UsuarioController(UsuariosService usuariosService) {
@@ -119,8 +119,12 @@ public class UsuarioController {
      * GET /api/usuarios/tipo/{tipo} - Obtener usuarios por tipo
      */
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<Usuario>> getUsuariosByTipo(@PathVariable String tipo) {
+   /* public ResponseEntity<List<Usuario>> getUsuariosByTipo(@PathVariable String tipo) {
         return ResponseEntity.ok(usuariosService.findByRol(tipo.toUpperCase()));
+
+    }*/
+    public ResponseEntity<List<Usuario>> getUsuariosByTipo(@PathVariable Integer tipo) {
+        return ResponseEntity.ok(usuariosService.findByRol(tipo));
     }
 
     /**

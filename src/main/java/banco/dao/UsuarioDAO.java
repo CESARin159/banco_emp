@@ -16,7 +16,7 @@ public interface UsuarioDAO {
     // Búsquedas específicas
     Optional<Usuario> findByDniRuc(String dniRuc);
     Optional<Usuario> findByCorreo(String correo);
-    List<Usuario> findByRol(String rolUsuario);
+    List<Usuario> findByRol(Integer rolUsuario);
     List<Usuario> findBySexo(String sexo);
 
     // Verificaciones

@@ -72,7 +72,7 @@ public class UsuariosServiceImpl implements UsuariosService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Usuario> findByRol(String rol) {
+    public List<Usuario> findByRol(Integer rol) {
         return usuarioDAO.findByRol(rol);
     }
 

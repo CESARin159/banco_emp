@@ -106,7 +106,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
-    public List<Usuario> findByRol(String rolUsuario) {
+    public List<Usuario> findByRol(Integer rolUsuario) {
         String sql = "SELECT * FROM t_usuario WHERE rol_usuario = ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Usuario.class), rolUsuario);
     }

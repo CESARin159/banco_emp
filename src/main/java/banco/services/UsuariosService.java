@@ -19,7 +19,7 @@ public interface UsuariosService {
     // Métodos de búsqueda y validación
     Optional<Usuario> findByDniRuc(String dniRuc);
     Optional<Usuario> findByCorreo(String correo);
-    List<Usuario> findByRol(String rol);
+    List<Usuario> findByRol(Integer rol);
 
     //MétododeNegocio
     Optional<Usuario> login(String correo, String contrasena);
